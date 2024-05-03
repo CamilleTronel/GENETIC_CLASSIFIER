@@ -1,0 +1,96 @@
+import random
+import numpy
+
+
+####
+
+class param_data:
+    H=50
+    W=100
+    
+class data_process:    
+    def diff(T):
+        n=len(T)
+        R=[]
+        for i in range(n-1):
+            R.append(T[i+1]-T[i])
+        return R
+####
+
+def f(x):
+    return 1/(1+numpy.exp(-x))
+
+def perceptron(theta,X):
+    return f(numpy.matmul(X,numpy.transpose(theta)))
+
+
+
+class model_param:
+    Q=10000
+    rn=1
+    S=5000
+    
+class model:
+    def cross(theta1,theta2):
+        p=len(theta1)
+        return numpy.array([(theta1[k]+theta2[k])/2 for k in range(p)])
+
+    def s(theta,X,Y):
+        n=len(X)
+        r=0
+        for i in range(n):
+            p=perceptron(theta,X[i])
+            if Y[i]==1:
+                r+=-numpy.log(p)
+            if Y[i]==0:
+                r+=-numpy.log(1-p)
+        return r
+    
+def train(X0,Y):
+
+    X=[data_process.diff(x)for x in X0]
+    # f0,f1=frequency01(Y)
+    
+    pool = []
+    
+    for k in range(model_param.Q):
+        pool.append(numpy.array([model_param.rn*(2*random.random()-1) for r in range(param_data.W-1)]))
+    
+        
+    for d in range(20):
+        score=[]
+        
+        for k in range(model_param.Q):
+            score.append(model.s(pool[k],X,Y))
+            
+        selected=[]
+        score_selected=[]
+        for i in range(model_param.S):
+            m0=numpy.inf
+            i0=0
+            for k in range(len(score)):
+                if score[k]<m0:
+                    m0=score[k]
+                    i0=k
+            score_selected.append(score.pop(i0))
+            selected.append(pool.pop(i0))
+        
+        print(score_selected[0])
+        new=[]
+        for i in range(model_param.Q-model_param.S):
+            n1=random.randint(0,model_param.S-1)
+            n2=random.randint(0,model_param.S-1)
+            theta1=selected[n1]
+            theta2=selected[n2]
+            theta=model.cross(theta1,theta2)
+            new.append(theta)
+            
+        pool0=selected+new
+        
+        poolnew=[]
+        
+        for j in range(model_param.Q):
+            n=random.randint(0,len(pool0)-1)
+            poolnew.append(pool0.pop(n))
+        
+        pool=poolnew.copy()
